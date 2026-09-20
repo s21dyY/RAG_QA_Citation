@@ -12,6 +12,7 @@ def load(jsonl_path: Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("jsonl_path", type=Path)
+    parser.add_argument("--query", help = "test a question against the index instead of just building it")
     args = parser.parse_args()
     records = load(args.jsonl_path)
 
@@ -47,6 +48,16 @@ if __name__ == "__main__":
                 metadatas=metadatas,
     )
 
-    print(f"Embedded {len(texts)} chunks")
-    print(embeddings.shape)
-    print(f"Indexed {collection.count()} chunks into data/index")
+    if args.query:
+        query_embedding = model.encode([args.query])
+        results = collection.query(
+            query_embeddings=query_embedding.tolist(),
+            n_results=5
+        )   
+        for meta, doc in zip(
+            results["metadatas"][0], results["documents"][0]
+        ):
+            print(meta["citation"])
+            print(meta["heading"])
+            print(doc[:200])
+
