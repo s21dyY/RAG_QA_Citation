@@ -59,12 +59,3 @@ Ask three or four classmates to find cited answers to 10 questions by searching 
 - A 90-second demo video or GIF
 - Two CV bullets, which I'll write once you have real numbers
 
-## 8. Your interview story
-> "At SLB I limited what the LLM could do and checked its output against the source. I then built a RAG system on pipeline regulations, and evaluated it on 40 questions: hybrid retrieval raised recall@5 from X to Y, and it correctly refused Z of 10 unanswerable questions."
-
-That covers the topics interviewers keep raising: RAG design, evaluation and hallucination handling.
-
-## 9. Keep applying in parallel
-Send applications while you build, and describe the project as "in progress" until it's finished. I still need two answers from you to finalise your interview material: whether you wrote the comparison script at SLB, and whether you wrote the pantry check in What to Eat Today.
-
-**One decision to make now:** do you want to use **49 CFR Part 192 (gas pipelines)** or **OSHA 29 CFR 1910 (workplace safety)** as the document set? Once you choose, I can give you the exact download steps and a starter list of 15 example questions.
