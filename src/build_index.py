@@ -12,7 +12,6 @@ def load(jsonl_path: Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("jsonl_path", type=Path)
-    parser.add_argument("--query", help = "test a question against the index instead of just building it")
     args = parser.parse_args()
     records = load(args.jsonl_path)
 
@@ -37,27 +36,25 @@ if __name__ == "__main__":
             "type": item["type"],  
         })
 
+    # embedding (np array), turn text into number
+    # run each string (heading + text) throght MiniLM model and return a list of 265 vectors
+    # one vector per chunk, capturing that chunk's mean as coordinates in space
     embeddings = model.encode(texts, show_progress_bar=True)
 
+
+    # connection to chromadb, save to path
     client = chromadb.PersistentClient(path="data/index")
+
+    # create table cfr1_92 under client
     collection = client.get_or_create_collection("cfr_192")
+
+    # indexing (upsert is a safer add)
+    # write everying into collection row by row
+    # id[0] goes with embedding[0], documents[0]...etc
     collection.upsert(
                 ids=ids,
-                embeddings=embeddings.tolist(),   # Chroma wants plain lists, not a numpy array
+                embeddings=embeddings.tolist(), 
                 documents=documents,
                 metadatas=metadatas,
     )
-
-    if args.query:
-        query_embedding = model.encode([args.query])
-        results = collection.query(
-            query_embeddings=query_embedding.tolist(),
-            n_results=5
-        )   
-        for meta, doc in zip(
-            results["metadatas"][0], results["documents"][0]
-        ):
-            print(meta["citation"])
-            print(meta["heading"])
-            print(doc[:200])
 
