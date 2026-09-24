@@ -77,6 +77,23 @@ Record schema (JSONL, one per line):
 - Cross-references (`<XREF>`) and citations (`<CITA>`) are kept as plain
   text, not resolved into links between chunks.
 
+## Generation (Day 4)
+
+Requires [Ollama](https://ollama.com) running locally:
+
+```bash
+brew install ollama && ollama serve     # separate terminal
+ollama pull qwen2.5:7b
+
+python src/generate.py                          # 3 smoke-test questions
+uvicorn src.api:app --reload
+curl "localhost:8000/ask?q=How+often+must+leakage+surveys+be+done+in+business+districts"
+```
+
+`/ask` returns the answer plus `cited` (cited sections that were retrieved),
+`unsupported` (cited sections that were *not* retrieved, i.e. hallucinated
+citations), `not_found`, and `grounded`.
+
 ## Next steps
 
 See the schedule in [SCOPE.md](SCOPE.md): chunking with metadata is done

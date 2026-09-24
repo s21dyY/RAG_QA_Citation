@@ -57,6 +57,51 @@ slightly simpler.
 
 ---
 
+## 2026-09-23 — Generation: prompt fixes and llama3.2:3b vs qwen2.5:7b
+
+**Context:** Day 4, adding `generate.py` (retrieved sections -> Ollama ->
+answer with `[192.xxx]` citations, or exactly "Not found in the provided
+text."). `check_citations()` compares every section the answer cites against
+the sections actually retrieved; a citation outside that set is marked
+`unsupported`, and an answer with no valid citation is `grounded: False`.
+
+**Found (5 smoke-test questions, top-5 vector retrieval, temperature 0):**
+
+1. *First prompt (rules in system prompt only), llama3.2:3b:* the model copied
+   the context layout instead of answering, e.g. the whole answer to the
+   burial-depth question was `[192.327](f)(1)`. For the MAOP question it copied
+   the start of 192.619 and stopped at "the lowest of the following:".
+2. *Added "answer in your own sentences" + an example answer:* the answers were
+   now proper sentences, but citations disappeared (`grounded: False` caught
+   it) and burial depth became a false "not found".
+3. *Repeated the rules after the question* (small models lose system-prompt
+   rules behind ~5 long sections): the citations came back and burial depth was
+   correct (36 in. soil / 24 in. rock, 192.327(a)), BUT for the civil-penalty
+   question (penalties are in Part 190, not 192) it made up
+   "$500,000 / $2.5 million [192.18]". 192.18 was never retrieved -> flagged
+   `unsupported`. So the check works, but the model is unsafe.
+4. *Same prompt, qwen2.5:7b:* 4/5 correct, both refusals correct, no
+   unsupported citations. One miss: false "not found" on burial depth.
+   Probable cause: the flattened 192.327 table ("Class 2, 3, and 4 locations
+   36 (914) 24 (610)") has no column headers inline (known limitation in
+   README).
+
+**Decision:** default to qwen2.5:7b. For a compliance tool, a false refusal is
+a much cheaper failure than a confident wrong answer with a citation that
+looks real. Cost: ~7-30 s per answer vs ~5-10 s on the 3B (local, M-series).
+Keep the model as a parameter so Day 9 can report both.
+
+**Known issues / follow-ups:**
+- `APPENDIX_RE` false positive: "Appendix N of ASME B31.8" (an external
+  standard cited inside 192.619) gets flagged as an unsupported Part 192
+  appendix. Tighten the regex, or only match inside `[...]`.
+- Table flattening now has a concrete failure case (192.327). Candidate Day 10
+  improvement: render tables as "row: col=value" lines in `parse_ecfr.py`.
+- Answerable questions whose table cell loses its headers are a good category
+  to include in the 40-question eval set.
+
+---
+
 <!--
 Next entry template:
 
